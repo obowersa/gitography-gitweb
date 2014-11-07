@@ -1,0 +1,13 @@
+#!/bin/bash
+
+
+
+for file in $(git ls-files | grep .diag); do
+        content=$(git cat-file blob "HEAD:${file}")
+        if [[ -n $(echo "${content}" | grep seqdiag) ]]; then
+                echo "${content}" | seqdiag -T png -o "${GIT_DIR}/${file}.png" /dev/stdin
+        elif [[ -n $(echo "${content}" | grep nwdiag) ]]; then
+                echo "${content}" | nwdiag -T png -o "${GIT_DIR}/${file}.png" /dev/stdin 
+        fi
+
+done
