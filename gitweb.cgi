@@ -6616,17 +6616,19 @@ if (!$prevent_xss) {
 
 if(!$prevent_xss) {
   my $proj_head_hash = git_get_head_hash($project);
-  my $diag_check = $GIT . " " . git_cmd() . " ls-tree HEAD  | grep .diag | awk '{print \$4}' | ";
+  my $diag_check = $GIT . " " . git_cmd() . " ls-files | grep .diag | ";
   open FOO,$diag_check;
   while (<FOO>) {
-    $_  =~ s/\s+$//;
+    $_ =~ s/\s+$//;
+    my $parsed_name = $_; 
+    $_ =~ s/\//_/g;
     my $image_path = "$projectroot/$project/$_.png";
     if (-e $image_path){
       open(my $fh, '<', $image_path) or die "unable to open file $image_path: $!";
       binmode($fh);
       my $image_data = do {local $/; <$fh>};
       close($fh);
-      print "$_.png";
+      print "<div class=\"title\">$parsed_name</div>\n";
       print return_page_content("jpeg", $image_data);
      }
   }
