@@ -1,13 +1,38 @@
 #!/bin/bash
+#
+# Post-Recieve hook which utilises seqdiag and nw diag to render images.
+# With gitolite this should sit in .gitolite/hooks/common
+#
+# Author: Owen Bower Adams <owen@obowersa.net>
 
+readonly E_TOOL_SEQDIAG=3
+readonly E_TOOL_NWDIAG=4
 
+err() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
+}
+
+prereq_checks() {
+  if ! $(hash seqdiag); then
+    err "Unable to find seqdiag"
+    exit $E_TOOL_SEQDIAG
+  fi
+
+  if ! $(hash nwdiag); then
+    err "Unable to find nwdiag"
+    exit $E_TOOL_NWDIAG
+  fi
+}
+
+prereq_checks
 
 for file in $(git ls-files | grep .diag); do
-        content=$(git cat-file blob "HEAD:${file}")
-        if [[ -n $(echo "${content}" | grep seqdiag) ]]; then
-                echo "${content}" | seqdiag -T png -o "${GIT_DIR}/${file}.png" /dev/stdin
-        elif [[ -n $(echo "${content}" | grep nwdiag) ]]; then
-                echo "${content}" | nwdiag -T png -o "${GIT_DIR}/${file}.png" /dev/stdin 
-        fi
+  content=$(git cat-file blob "HEAD:${file}")
+  parsed_file="${file//\//_}"
+  if [[ -n $(echo "${content}" | grep seqdiag) ]]; then
+    echo "${content}" | seqdiag -T png -o "${GIT_DIR}/${parsed_file}.png" /dev/stdin
+  elif [[ -n $(echo "${content}" | grep nwdiag) ]]; then
+    echo "${content}" | nwdiag -T png -o "${GIT_DIR}/${parsed_file}.png" /dev/stdin 
+  fi
 
 done
